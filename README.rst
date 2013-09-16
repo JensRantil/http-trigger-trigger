@@ -69,6 +69,6 @@ Future improvements
 -------------------
 * Allow certain GET or POST parameters to pass through (and be renamed).
 * Do input matching based on other things than path:
- * HTTP method
- * Host header.
+  * HTTP method
+  * Host header.
 
