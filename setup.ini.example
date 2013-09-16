@@ -1,0 +1,5 @@
+[/hello]
+url = http://localhost:8000
+
+[/hello/world]
+url = http://www.google.com
