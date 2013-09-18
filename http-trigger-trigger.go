@@ -75,7 +75,7 @@ func (tt TriggerTrigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func LoadHandlers(file *ini.File) {
 	root_found := false
 
-	for _, sectname := range file.Sections() {
+	for sectname := range *file {
 		if sectname == "" {
 			continue
 		}
