@@ -14,7 +14,7 @@ parameters are stripped off.
 
 Why would I want to use this?
 -----------------------------
-I've been using this to securily expose a build tool trigger to the web
+I've been using this to securely expose a build tool trigger to the web
 so that Github could trigger builds when new pushes arrives.
 
 In general, this tool is useful when you'd like to expose a certain
