@@ -75,3 +75,5 @@ Future improvements
 
   * Host header.
 
+* Modify the default response content.
+
