@@ -4,11 +4,14 @@ import (
 	"net/http"
 	"os"
 	"fmt"
+	"os/exec"
 	"log"
 	"time"
+	"container/list"
 	"strconv"
 	"github.com/nu7hatch/gouuid"
 	"github.com/vaughan0/go-ini"
+	"strings"
 )
 
 var TriggerNotFoundMsg = "Trigger could not be found."
@@ -28,30 +31,75 @@ type Trigger struct {
 	// the maximum number of pending triggers to be handled. When
 	// queue is full we start to discard incoming triggers.
 	queueSize int
+	// The command to execute
+	cmdapp string
+	cmdargs []string
 }
 
 // Process HTTP requests for a trigger.
 func handleHttpTriggerTriggers(t Trigger) {
-	if t.outputurl == "" {
-		return
-	}
 	for id := range t.requestchan {
-		resp, err := http.Get(t.outputurl)
-		var result string
-		if err != nil {
-			result = "Err: " + err.Error()
-		} else {
-			result = resp.Status
+		if t.outputurl != "" {
+			resp, err := http.Get(t.outputurl)
+			var result string
+			if err != nil {
+				result = "Err: " + err.Error()
+			} else {
+				result = resp.Status
+			}
+			log.Println("[client]", id, "GET", t.outputurl, result)
 		}
-		log.Println("[client]", id, "GET", t.outputurl, result)
+		if t.cmdapp != "" {
+			err := exec.Command(t.cmdapp, t.cmdargs ...).Run()
+			if err != nil {
+				log.Println("[shell]", id, "Executed with error:", fmt.Sprint(err))
+			} else {
+				log.Println("[shell]", id, "Executed.")
+			}
+		}
 		time.Sleep(t.hitDelay)
 	}
+}
+
+
+// Split a string based on spaces supporting escaping with backslash.
+func splitEscapedString(s string) []string {
+	pieces := list.New()
+	for _, escapepiece := range strings.Split(s, `\ `) {
+		l := list.New()
+		for _, p := range strings.Split(escapepiece, " ") {
+			l.PushBack(p)
+		}
+		pieces.PushBack(l)
+	}
+
+	for pieces.Len() > 1 {
+		a := pieces.Front()
+		av := a.Value.(*list.List)
+		if av.Len() == 0 {
+			pieces.Remove(a)
+		} else {
+			aa := av.Front()
+			bv := a.Next().Value.(*list.List)
+			bv.Front().Value = aa.Value.(string) + " " + bv.Front().Value.(string)
+			av.Remove(aa)
+		}
+	}
+
+	innerlist := pieces.Front().Value.(*list.List)
+	res := make([]string, 0, innerlist.Len())
+	for e := innerlist.Front(); e != nil; e = e.Next() {
+		res = append(res, e.Value.(string))
+	}
+
+	return res
 }
 
 
 // create a new trigger trigger for a specific path
 func LoadHandler(path string, section ini.Section) Trigger {
 	outputurl, _ := section["url"]
+	command, _ := section["command"]
 
 	sHitDelay, useHitDelay := section["hit_delay"]
 	if !useHitDelay {
@@ -59,7 +107,7 @@ func LoadHandler(path string, section ini.Section) Trigger {
 	}
 	hitDelay, err := time.ParseDuration(sHitDelay)
 	if err != nil {
-		panic(fmt.Sprintf("'hit_delay', unparsable duration: %s", sHitDelay))
+		panic(fmt.Sprint("'hit_delay', unparsable duration:", sHitDelay))
 	}
 	if hitDelay < 0 {
 		panic("'hit_delay' must be positive")
@@ -71,7 +119,7 @@ func LoadHandler(path string, section ini.Section) Trigger {
 	}
 	queueSize, err := strconv.Atoi(sQueueSize)
 	if err != nil {
-		panic(fmt.Sprintf("'queue_size' not a number: %s", sQueueSize))
+		panic(fmt.Sprint("'queue_size' not a number:", sQueueSize))
 	}
 	if queueSize < 0 {
 		panic("'queue_size' must be positive")
@@ -84,7 +132,19 @@ func LoadHandler(path string, section ini.Section) Trigger {
 		hitDelay: hitDelay,
 		outputurl: outputurl,
 	}
+
+	if command != "" {
+		pieces := splitEscapedString(command)
+		if len(pieces) == 0 {
+			panic(fmt.Sprint("Command seems faulty:", command))
+		}
+		t.cmdapp = pieces[0]
+		t.cmdargs = pieces[1:]
+	}
+
+	// background triggers
 	go handleHttpTriggerTriggers(t)
+
 	return t
 }
 
