@@ -19,10 +19,32 @@ type LogUUID string
 type Trigger struct {
 	// the path for which this trigger is triggered.
 	path string
-
+	// the backend URL
+	outputurl string
 	// channel for HTTP requests
 	requestchan chan LogUUID
+	// time to wait between handling each trigger
+	hitDelay time.Duration
+	// the maximum number of pending triggers to be handled. When
+	// queue is full we start to discard incoming triggers.
+	queueSize int
 }
+
+// Process HTTP requests for a trigger.
+func handleHttpTriggerTriggers(t Trigger) {
+	for id := range t.requestchan {
+		resp, err := http.Get(t.outputurl)
+		var result string
+		if err != nil {
+			result = "Err: " + err.Error()
+		} else {
+			result = resp.Status
+		}
+		log.Println("[client]", id, "GET", t.outputurl, result)
+		time.Sleep(t.hitDelay)
+	}
+}
+
 
 // create a new trigger trigger for a specific path
 func LoadHandler(path string, section ini.Section) Trigger {
@@ -58,21 +80,11 @@ func LoadHandler(path string, section ini.Section) Trigger {
 	t := Trigger{
 		path: path,
 		requestchan: make(chan LogUUID, queueSize),
+		queueSize: queueSize,
+		hitDelay: hitDelay,
+		outputurl: outputurl,
 	}
-	go func() {
-		// Process HTTP requests
-		for id := range t.requestchan {
-			resp, err := http.Get(outputurl)
-			var result string
-			if err != nil {
-				result = "Err: " + err.Error()
-			} else {
-				result = resp.Status
-			}
-			log.Println("[client]", id, "GET", outputurl, result)
-			time.Sleep(hitDelay)
-		}
-	}()
+	go handleHttpTriggerTriggers(t)
 	return t
 }
 
