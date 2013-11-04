@@ -32,6 +32,9 @@ type Trigger struct {
 
 // Process HTTP requests for a trigger.
 func handleHttpTriggerTriggers(t Trigger) {
+	if t.outputurl == "" {
+		return
+	}
 	for id := range t.requestchan {
 		resp, err := http.Get(t.outputurl)
 		var result string
@@ -48,10 +51,7 @@ func handleHttpTriggerTriggers(t Trigger) {
 
 // create a new trigger trigger for a specific path
 func LoadHandler(path string, section ini.Section) Trigger {
-	outputurl, ok := section["url"]
-	if !ok {
-		panic(fmt.Sprintf("'url' missing for: %s", path))
-	}
+	outputurl, _ := section["url"]
 
 	sHitDelay, useHitDelay := section["hit_delay"]
 	if !useHitDelay {
