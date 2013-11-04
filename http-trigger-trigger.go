@@ -5,7 +5,6 @@ import (
 	"os"
 	"fmt"
 	"log"
-	"strconv"
 	"github.com/nu7hatch/gouuid"
 	"github.com/vaughan0/go-ini"
 )
@@ -119,15 +118,11 @@ func main() {
 
 	LoadHandlers(&file)
 
-	portstring, ok := file.Get("", "port")
+	listen, ok := file.Get("", "listen")
 	if !ok {
-		log.Print("[server] 'port' not defined. Using fallback: 8080")
-		portstring = "8080"
-	}
-	_, err = strconv.Atoi(portstring)
-	if err != nil {
-		log.Fatalf("[server] 'port' not integer: %s", portstring)
+		log.Print("[server] 'listen' not defined. Using fallback ':8080'")
+		listen = ":8080"
 	}
 
-	log.Fatal(http.ListenAndServe(":" + portstring, nil))
+	log.Fatal(http.ListenAndServe(listen, nil))
 }
