@@ -11,20 +11,42 @@ import (
 
 var TriggerNotFoundMsg = "Trigger could not be found."
 
+type LogUUID string
+
 // A handler for a specific trigger.
 type Trigger struct {
 	// the path for which this trigger is triggered.
 	path string
-	// the URL that is to be called when this trigger i triggered
-	outputurl string
+
+	// channel for HTTP requests
+	requestchan chan LogUUID
 }
 
 // create a new trigger trigger for a specific path
-func LoadHandler(outputurl, path string) Trigger {
-	return Trigger{
-		path: path,
-		outputurl: outputurl,
+func LoadHandler(path string, section ini.Section) Trigger {
+	outputurl, ok := section["url"]
+	if !ok {
+		panic(fmt.Sprintf("'url' missing for: %s", path))
 	}
+
+	t := Trigger{
+		path: path,
+		requestchan: make(chan LogUUID),
+	}
+	go func() {
+		// Process HTTP requests
+		for id := range t.requestchan {
+			resp, err := http.Get(outputurl)
+			var result string
+			if err != nil {
+				result = "Err: " + err.Error()
+			} else {
+				result = resp.Status
+			}
+			log.Println("[client]", id, "GET", outputurl, result)
+		}
+	}()
+	return t
 }
 
 // log and trigger the specific trigger
@@ -55,26 +77,17 @@ func (tt Trigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		id = loguuid.String()
 	}
+	tt.requestchan <- LogUUID(id)
 
 	log.Println("[server]", id, "GET", r.URL.Path, "200")
 	fmt.Fprintf(w, "Triggered.")
-	go func() {
-		resp, err := http.Get(tt.outputurl)
-		var result string
-		if err != nil {
-			result = "Err: " + err.Error()
-		} else {
-			result = resp.Status
-		}
-		log.Println("[client]", id, "GET", tt.outputurl, result)
-	}()
 }
 
 // Load all handlers from the configuration file.
 func LoadHandlers(file ini.File) {
 	root_found := false
 
-	for path, _ := range file {
+	for path, settings := range file {
 		if path == "" {
 			// ignoring default section
 			continue
@@ -84,12 +97,7 @@ func LoadHandlers(file ini.File) {
 			root_found = true
 		}
 
-		outputurl, ok := file.Get(path, "url")
-		if !ok {
-			panic(fmt.Sprintf("'url' missing for: %s", path))
-		}
-
-		http.Handle(path, LoadHandler(outputurl, path))
+		http.Handle(path, LoadHandler(path, settings))
 	}
 
 	if !root_found {
