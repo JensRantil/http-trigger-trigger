@@ -5,6 +5,8 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"time"
+	"strconv"
 	"github.com/nu7hatch/gouuid"
 	"github.com/vaughan0/go-ini"
 )
@@ -29,9 +31,33 @@ func LoadHandler(path string, section ini.Section) Trigger {
 		panic(fmt.Sprintf("'url' missing for: %s", path))
 	}
 
+	sHitDelay, useHitDelay := section["hit_delay"]
+	if !useHitDelay {
+		sHitDelay = "0"
+	}
+	hitDelay, err := time.ParseDuration(sHitDelay)
+	if err != nil {
+		panic(fmt.Sprintf("'hit_delay', unparsable duration: %s", sHitDelay))
+	}
+	if hitDelay < 0 {
+		panic("'hit_delay' must be positive")
+	}
+
+	sQueueSize, hasQueueSize := section["queue_size"]
+	if !hasQueueSize {
+		sQueueSize = "100"
+	}
+	queueSize, err := strconv.Atoi(sQueueSize)
+	if err != nil {
+		panic(fmt.Sprintf("'queue_size' not a number: %s", sQueueSize))
+	}
+	if queueSize < 0 {
+		panic("'queue_size' must be positive")
+	}
+
 	t := Trigger{
 		path: path,
-		requestchan: make(chan LogUUID),
+		requestchan: make(chan LogUUID, queueSize),
 	}
 	go func() {
 		// Process HTTP requests
@@ -44,10 +70,13 @@ func LoadHandler(path string, section ini.Section) Trigger {
 				result = resp.Status
 			}
 			log.Println("[client]", id, "GET", outputurl, result)
+			time.Sleep(hitDelay)
 		}
 	}()
 	return t
 }
+
+const StatusTooManyRequests = 429
 
 // log and trigger the specific trigger
 //
@@ -77,10 +106,18 @@ func (tt Trigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		id = loguuid.String()
 	}
-	tt.requestchan <- LogUUID(id)
 
-	log.Println("[server]", id, "GET", r.URL.Path, "200")
-	fmt.Fprintf(w, "Triggered.")
+	select {
+	case tt.requestchan <- LogUUID(id):
+		// No rate limitting in place
+		fmt.Fprintf(w, "Triggered.")
+		log.Println("[server]", id, "GET", r.URL.Path, "200")
+	default:
+		// We were rate limitted
+		w.WriteHeader(StatusTooManyRequests)
+		log.Println("[server]", id, "GET", r.URL.Path, strconv.Itoa(StatusTooManyRequests))
+		fmt.Fprintf(w, "Too many requests. Calm down, please.")
+	}
 }
 
 // Load all handlers from the configuration file.

@@ -1,6 +1,8 @@
 listen=:8080
 
 [/hello]
+queue_size=2
+hit_delay=1s
 url = http://localhost:8000
 
 [/hello/world]
