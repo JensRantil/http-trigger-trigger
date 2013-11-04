@@ -74,19 +74,19 @@ func (tt TriggerTrigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func LoadHandlers(file *ini.File) {
 	root_found := false
 
-	for sectname := range *file {
-		if sectname == "" {
+	for path, _ := range *file {
+		if path == "" {
+			// ignoring default section
 			continue
 		}
 
-		path := sectname
 		if path == "/" {
 			root_found = true
 		}
 
 		outputurl, ok := file.Get(path, "url")
 		if !ok {
-			panic(fmt.Sprintf("'url' missing for: %s", sectname))
+			panic(fmt.Sprintf("'url' missing for: %s", path))
 		}
 
 		http.Handle(path, LoadHandler(outputurl, path))
