@@ -71,10 +71,10 @@ func (tt TriggerTrigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Load all handlers from the configuration file.
-func LoadHandlers(file *ini.File) {
+func LoadHandlers(file ini.File) {
 	root_found := false
 
-	for path, _ := range *file {
+	for path, _ := range file {
 		if path == "" {
 			// ignoring default section
 			continue
@@ -116,7 +116,7 @@ func main() {
 		panic(fmt.Sprintf("Could not read config file: %s", inifilename))
 	}
 
-	LoadHandlers(&file)
+	LoadHandlers(file)
 
 	listen, ok := file.Get("", "listen")
 	if !ok {
