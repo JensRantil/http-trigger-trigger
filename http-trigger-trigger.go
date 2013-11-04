@@ -12,7 +12,7 @@ import (
 var TriggerNotFoundMsg = "Trigger could not be found."
 
 // A handler for a specific trigger.
-type TriggerTrigger struct {
+type Trigger struct {
 	// the path for which this trigger is triggered.
 	path string
 	// the URL that is to be called when this trigger i triggered
@@ -20,8 +20,8 @@ type TriggerTrigger struct {
 }
 
 // create a new trigger trigger for a specific path
-func LoadHandler(outputurl, path string) TriggerTrigger {
-	return TriggerTrigger{
+func LoadHandler(outputurl, path string) Trigger {
+	return Trigger{
 		path: path,
 		outputurl: outputurl,
 	}
@@ -31,7 +31,7 @@ func LoadHandler(outputurl, path string) TriggerTrigger {
 //
 // Does proper checks to make sure that the right method is from
 // downstream.
-func (tt TriggerTrigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (tt Trigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET"{
 		// only supporting GET at the moment
 		log.Println("[server]", r.Method, r.URL.Path, "404 (only GET allowed)")
