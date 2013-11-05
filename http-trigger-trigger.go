@@ -1,17 +1,18 @@
 package main
 
 import (
+	"container/list"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"fmt"
 	"os/exec"
-	"log"
-	"time"
-	"container/list"
 	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nu7hatch/gouuid"
 	"github.com/vaughan0/go-ini"
-	"strings"
 )
 
 var TriggerNotFoundMsg = "Trigger could not be found."
