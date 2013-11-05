@@ -1,6 +1,8 @@
 ====================
 HTTP Trigger Trigger
 ====================
+.. image:: https://secure.travis-ci.org/JensRantil/http-trigger-trigger.png?branch=develop
+   :target: http://travis-ci.org/#!/JensRantil/http-trigger-trigger
 
 "HTTP Trigger Trigger" is an HTTP server application that take requests
 and for every request it triggers an HTTP request to some other
