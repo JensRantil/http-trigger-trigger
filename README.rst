@@ -1,7 +1,7 @@
 ====================
 HTTP Trigger Trigger
 ====================
-.. image:: https://secure.travis-ci.org/JensRantil/http-trigger-trigger.png?branch=develop
+.. image:: https://secure.travis-ci.org/JensRantil/http-trigger-trigger.png
    :target: http://travis-ci.org/#!/JensRantil/http-trigger-trigger
 
 "HTTP Trigger Trigger" is an HTTP server application that take requests
