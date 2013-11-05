@@ -5,7 +5,7 @@ import (
 )
 
 type escapeSplitTest struct {
-	s string
+	s        string
 	expected []string
 }
 

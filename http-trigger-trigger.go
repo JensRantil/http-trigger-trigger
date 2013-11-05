@@ -33,7 +33,7 @@ type Trigger struct {
 	// queue is full we start to discard incoming triggers.
 	queueSize int
 	// The command to execute
-	cmdapp string
+	cmdapp  string
 	cmdargs []string
 }
 
@@ -51,7 +51,7 @@ func handleHttpTriggerTriggers(t Trigger) {
 			log.Println("[client]", id, "GET", t.outputurl, result)
 		}
 		if t.cmdapp != "" {
-			err := exec.Command(t.cmdapp, t.cmdargs ...).Run()
+			err := exec.Command(t.cmdapp, t.cmdargs...).Run()
 			if err != nil {
 				log.Println("[shell]", id, "Executed with error:", fmt.Sprint(err))
 			} else {
@@ -61,7 +61,6 @@ func handleHttpTriggerTriggers(t Trigger) {
 		time.Sleep(t.hitDelay)
 	}
 }
-
 
 // Split a string based on spaces supporting escaping with backslash.
 func splitEscapedString(s string) []string {
@@ -96,7 +95,6 @@ func splitEscapedString(s string) []string {
 	return res
 }
 
-
 // create a new trigger trigger for a specific path
 func LoadHandler(path string, section ini.Section) Trigger {
 	outputurl, _ := section["url"]
@@ -127,11 +125,11 @@ func LoadHandler(path string, section ini.Section) Trigger {
 	}
 
 	t := Trigger{
-		path: path,
+		path:        path,
 		requestchan: make(chan LogUUID, queueSize),
-		queueSize: queueSize,
-		hitDelay: hitDelay,
-		outputurl: outputurl,
+		queueSize:   queueSize,
+		hitDelay:    hitDelay,
+		outputurl:   outputurl,
 	}
 
 	if command != "" {
@@ -156,7 +154,7 @@ const StatusTooManyRequests = 429
 // Does proper checks to make sure that the right method is from
 // downstream.
 func (tt Trigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET"{
+	if r.Method != "GET" {
 		// only supporting GET at the moment
 		log.Println("[server]", r.Method, r.URL.Path, "404 (only GET allowed)")
 		w.WriteHeader(http.StatusNotFound)
