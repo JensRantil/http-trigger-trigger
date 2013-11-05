@@ -46,9 +46,11 @@ The binary built is ``http-trigger-trigger``.
 
 Configuration
 -------------
-The configuration consists of a single INI file::
+See ``setup.ini.example`` for an example configuration file containing
+all possible key/values. The file uses standard INI format. Here's a
+stripped down example:
 
-    port=8080
+    listen=:8080
 
     [/trigger/first]
     url = http://upstream.server.example.com/other-trigger
@@ -58,7 +60,7 @@ The configuration consists of a single INI file::
 
 For every request all endpoints will be matched sequentially against the
 INI section. The first match will trigger a request to its corresponding
-``url``. If ``port`` is not defined, it will use port ``8080`` and
+``url``. If ``listen`` is not defined, it will use port ``8080`` and
 listen on all interfaces.
 
 Running
