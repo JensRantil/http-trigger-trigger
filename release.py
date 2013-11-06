@@ -34,6 +34,7 @@ for opsystem, variants in VARIANTS:
 
         shutil.move('http-trigger-trigger', variantpath)
         shutil.copy('README.rst', variantpath)
+        shutil.copy('setup.ini.example', variantpath)
 
         #os.system('tar czf {0}.tar.gz {1}'.format(variantdir, variantpath))
         tarfile = os.path.join(releasepath,
