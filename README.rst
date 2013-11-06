@@ -48,7 +48,7 @@ Configuration
 -------------
 See ``setup.ini.example`` for an example configuration file containing
 all possible key/values. The file uses standard INI format. Here's a
-stripped down example:
+stripped down example::
 
     listen=:8080
 
