@@ -154,13 +154,6 @@ const StatusTooManyRequests = 429
 // Does proper checks to make sure that the right method is from
 // downstream.
 func (tt Trigger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		// only supporting GET at the moment
-		log.Println("[server]", r.Method, r.URL.Path, "404 (only GET allowed)")
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, TriggerNotFoundMsg)
-		return
-	}
 	if r.URL.Path != tt.path {
 		// if this isn't here we'll trigger for all path
 		// prefixes.
