@@ -22,8 +22,8 @@ Trigger.
 
 Why would I want to use this?
 -----------------------------
-The initial usecase was to securely expose a build tool trigger to the
-web so that Github can trigger builds when new pushes arrives.
+The initial usecase was to securely expose to the web a build tool
+trigger so that Github could trigger builds when new pushes arrives.
 
 In general, this tool is useful when you'd like to expose a certain
 internal API endpoint to the web, but you'd like to do this in a very
