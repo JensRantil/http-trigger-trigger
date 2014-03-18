@@ -5,8 +5,9 @@ HTTP Trigger Trigger
    :target: http://travis-ci.org/#!/JensRantil/http-trigger-trigger
 
 "HTTP Trigger Trigger" is an HTTP server application that take requests
-and for every request it triggers an HTTP request to some other
-upstream destination. The configuration is stored in a simple INI file.
+and for every request it either triggers an HTTP request to some other
+upstream destination, or it executes a shell command. The configuration
+is stored in a simple INI file.
 
 The difference between HTTP Trigger Trigger and many other HTTP proxies
 (such as nginx and Apache) is that its backend requests are fully
