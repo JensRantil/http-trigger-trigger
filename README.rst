@@ -15,6 +15,11 @@ independent of their equivalent frontend request (except timing,
 obviously). This means, among other things, that all GET and POST
 parameters are stripped off.
 
+HTTP Trigger Trigger also supports rate limitting. This makes it very
+useful to make sure that your backend infrastructure will not be
+DDoS:ed/overloaded in case of a DDoS attack against HTTP Trigger
+Trigger.
+
 Why would I want to use this?
 -----------------------------
 The initial usecase was to securely expose a build tool trigger to the
