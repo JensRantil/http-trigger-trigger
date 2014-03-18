@@ -58,11 +58,16 @@ stripped down example::
 
     listen=:8080
 
-    [/trigger/first]
+    [/trigger/backend/http]
     url = http://upstream.server.example.com/other-trigger
 
-    [/trigger/second]
+    [/trigger/script]
+    command = echo Hello World
+
+    [/rate/limited/trigger]
     url = http://upstream2.server.example.com/another-trigger
+    queue_size=2
+    hit_delay=1s
 
 For every request all endpoints will be matched sequentially against the
 INI section. The first match will trigger a request to its corresponding
